@@ -4,7 +4,7 @@
 
 
 
-> I dont wanna change or customize it i just wanna build it and see it work 
+> I'm not a 3d designer so it's hard for me to change the color of anything xD
 
 
 
