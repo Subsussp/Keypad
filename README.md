@@ -10,7 +10,7 @@
 
 ## CAD Model:
 
-![Screenshot](Screenshoots/CAD.png)
+![Screenshot](Screenshoots/CAD1.png)
 
 
 
