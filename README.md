@@ -6,7 +6,15 @@
 
 > I dont wanna change or customize it i just wanna build it and see it work 
 
+## Full Build
 
+![Screenshot](Screenshoots/Full_Build.png)
+
+## Features 
+
+> 6 switches with different functionalities (opening chrome for example)
+
+> Rotary encoder to turn the volume up and down
 
 ## CAD Model:
 
@@ -25,8 +33,6 @@
 
 
 ![Screenshot](Screenshoots/Schematic.png)
-
-
 
 
 

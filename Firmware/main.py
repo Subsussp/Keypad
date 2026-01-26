@@ -1,40 +1,96 @@
-# Import board I/O pins
 import board
+import digitalio
+import time
+import usb_hid
+from adafruit_hid.keyboard import Keyboard
+from adafruit_hid.keycode import Keycode
+from adafruit_hid.consumer_control import ConsumerControl
+from adafruit_hid.consumer_control_code import ConsumerControlCode
 
-# KMK core imports
-from kmk.kmk_keyboard import KMKKeyboard
-from kmk.scanners.keypad import KeysScanner
-from kmk.keys import KC
+# HID devices
+kbd = Keyboard(usb_hid.devices)
+cc = ConsumerControl(usb_hid.devices)
 
-# KMK macro module (clean import)
-from kmk.modules.macros import Macros, Press, Release, Tap
+# ===== Switches =====
+switch_pins = [board.RX, board.SCL, board.TX, board.MISO, board.MOSI]
+switches = []
 
-# Create keyboard instance
-keyboard = KMKKeyboard()
+for pin in switch_pins:
+    sw = digitalio.DigitalInOut(pin)
+    sw.direction = digitalio.Direction.INPUT
+    sw.pull = digitalio.Pull.UP
+    switches.append(sw)
 
-# Load macro module
-macros = Macros()
-keyboard.modules.append(macros)
+# ===== Rotary encoder =====
+enc_a = digitalio.DigitalInOut(board.A2)
+enc_a.direction = digitalio.Direction.INPUT
+enc_a.pull = digitalio.Pull.UP
 
-# Define input pins (order matters — match your physical wiring)
-PINS = [board.D3, board.D4, board.D2, board.D1]
+enc_b = digitalio.DigitalInOut(board.A1)
+enc_b.direction = digitalio.Direction.INPUT
+enc_b.pull = digitalio.Pull.UP
 
-# Simple direct pin scanner (NOT a matrix)
-keyboard.matrix = KeysScanner(
-    pins=PINS,
-    value_when_pressed=False,
-)
+last_state = (enc_a.value << 1) | enc_b.value
 
-# Keymap — cleaner, consistent style, and no weird KC.Macro vs KC.MACRO mixing
-keyboard.keymap = [
-    [
-        KC.A,
-        KC.DELETE,
-        KC.MACRO("Hello world!"),
-        KC.MACRO(Press(KC.LCMD), Tap(KC.S), Release(KC.LCMD)),  # CMD+S macro
-    ]
-]
+print("Macropad started. Press switches or rotate encoder...")
 
-# Run firmware
-if __name__ == "__main__":
-    keyboard.go()
+while True:
+    # --- Check switches ---
+    for i, sw in enumerate(switches):
+        if not sw.value:  # pressed
+            print(f"Switch {i} pressed")
+            if i == 0:
+                # Button 0 opens Chrome (Windows)
+                # Win + R
+                kbd.press(Keycode.WINDOWS)
+                kbd.press(Keycode.R)
+                kbd.release_all()
+                time.sleep(0.1)
+                # Type "chrome"
+                for c in "chrome":
+                    kbd.press(getattr(Keycode, c.upper()))
+                    kbd.release_all()
+                # Press Enter
+                kbd.press(Keycode.ENTER)
+                kbd.release_all()
+            else:
+                # Other buttons send letters A-E
+                kbd.press(Keycode.A + i)
+                kbd.release_all()
+            time.sleep(0.2)  # debounce
+
+    # --- Check encoder (volume) ---
+    current_state = (enc_a.value << 1) | enc_b.value
+    if current_state != last_state:
+        # simple quadrature logic
+        if last_state == 0b00:
+            if current_state == 0b01:
+                cc.send(ConsumerControlCode.VOLUME_INCREMENT)
+                print("Volume Up")
+            elif current_state == 0b10:
+                cc.send(ConsumerControlCode.VOLUME_DECREMENT)
+                print("Volume Down")
+        elif last_state == 0b01:
+            if current_state == 0b11:
+                cc.send(ConsumerControlCode.VOLUME_INCREMENT)
+                print("Volume Up")
+            elif current_state == 0b00:
+                cc.send(ConsumerControlCode.VOLUME_DECREMENT)
+                print("Volume Down")
+        elif last_state == 0b11:
+            if current_state == 0b10:
+                cc.send(ConsumerControlCode.VOLUME_INCREMENT)
+                print("Volume Up")
+            elif current_state == 0b01:
+                cc.send(ConsumerControlCode.VOLUME_DECREMENT)
+                print("Volume Down")
+        elif last_state == 0b10:
+            if current_state == 0b00:
+                cc.send(ConsumerControlCode.VOLUME_INCREMENT)
+                print("Volume Up")
+            elif current_state == 0b11:
+                cc.send(ConsumerControlCode.VOLUME_DECREMENT)
+                print("Volume Down")
+
+        last_state = current_state
+        time.sleep(0.002)  # tiny debounce
