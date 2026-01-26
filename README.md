@@ -8,7 +8,7 @@
 
 ## Full Build
 
-![Screenshot](Screenshoots/Full_Build.png)
+![Screenshot](Screenshoots/Full_Build.jpg)
 
 ## Features 
 
