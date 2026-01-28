@@ -7,6 +7,7 @@
 > I dont wanna change or customize it i just wanna build it and see it work 
 
 ## Full Build
+![Screenshot](Screenshoots/IMG_20260128_225209.jpg)
 
 ![Screenshot](Screenshoots/Full_Build.jpg)
 
